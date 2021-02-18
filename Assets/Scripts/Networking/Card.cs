@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using UnityEngine.InputSystem;
+using System;
 
 public class Card : NetworkBehaviour
 {
@@ -13,6 +15,9 @@ public class Card : NetworkBehaviour
     private int cardIndex;
 
     private SpriteRenderer spriteRenderer;
+    private bool isInCardPickState;
+
+    public static event Action<int> ServerCardSwappedWithDeck;
 
     #region Server
 
@@ -22,8 +27,9 @@ public class Card : NetworkBehaviour
         Deck.clientDiscardButtonClicked += handleDiscardButtonClicked;
         Deck.clientTakecardButtonClicked += handleTakecardButtonClicked;
         init();
-        spriteRenderer.sprite = cardBack;
-        cardIndex = Random.Range(0, cardImages.Length);
+        cardIndex = UnityEngine.Random.Range(0, cardImages.Length);
+        //spriteRenderer.sprite = cardBack;
+        spriteRenderer.sprite = cardImages[cardIndex];
     }
 
     public override void OnStopServer()
@@ -42,6 +48,11 @@ public class Card : NetworkBehaviour
 
     #region Client
 
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+    }
+
     private void handleDiscardButtonClicked() {
         print("Discard button clicked on card");
     }
@@ -52,17 +63,33 @@ public class Card : NetworkBehaviour
 
     void OnMouseOver()
     {
+        
         // Needs collider on object
         //print("OnMouseOver");
         if (Input.GetMouseButtonDown(0))
         {
             //setCardProperty();
+            
         }
         else if (Input.GetMouseButtonDown(1))
         {
-            print("mouse ciciked");
-            StartCoroutine(displayCardTemporarily());
+            
+            //StartCoroutine(displayCardTemporarily());
         }
+    }
+
+    private void handleCardClicked() {
+        Collider2D collider = GetComponent<Collider2D>();
+        if (collider)
+        {
+            print("card cicked");
+            cmdUpdateCardIndex(getOpenDeckCardIndex());
+        }
+    }
+
+    private int getOpenDeckCardIndex() {
+
+        return -1;
     }
 
     IEnumerator displayCardTemporarily()
@@ -74,12 +101,19 @@ public class Card : NetworkBehaviour
 
     private void ClientHandleCardIndexUpdated(int oldIndex, int newIndex) {
         init();
-        //spriteRenderer.sprite = cardImages[newIndex];
+        spriteRenderer.sprite = cardImages[newIndex];
     }
 
-    [ContextMenu("Update card")]
-    public void updateCard() {
-        cmdUpdateCardIndex(Random.Range(0,cardImages.Length));
+    public void swapCardAndDeck(int newIndex) {
+        // set deck card to be this currenmt index
+        ServerCardSwappedWithDeck?.Invoke(cardIndex);
+        cmdUpdateCardIndex(newIndex);
+
+    }
+
+    [ContextMenu("click")]
+    public void chageCard() {
+        cmdUpdateCardIndex(UnityEngine.Random.Range(0,cardImages.Length));
     }
 
     #endregion

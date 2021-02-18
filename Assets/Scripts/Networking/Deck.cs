@@ -13,18 +13,28 @@ public class Deck : NetworkBehaviour
     private int openCardIndex;
 
     private SpriteRenderer spriteRenderer;
-    Gamestate gamestate;
 
     public static event Action clientTakecardButtonClicked;
     public static event Action clientDiscardButtonClicked;
+    public static event Action<int> ClientNewCardOpened;
+
+    public int getOpenCardIndex() {
+        return openCardIndex;
+    }
 
     #region Server
 
     public override void OnStartServer()
     {
         base.OnStartServer();
-        
+        Card.ServerCardSwappedWithDeck += handleServerCardSwappedWithDeck;
         openCardIndex = UnityEngine.Random.Range(0, cardImages.Length);
+    }
+
+    public override void OnStopServer()
+    {
+        base.OnStopServer();
+        Card.ServerCardSwappedWithDeck -= handleServerCardSwappedWithDeck;
     }
 
     [Command(ignoreAuthority =true)]
@@ -37,10 +47,15 @@ public class Deck : NetworkBehaviour
 
     #region Client
 
+    private void handleServerCardSwappedWithDeck(int newIndex) {
+        cmdUpdateCardIndex(newIndex);
+    }
+
     private void ClientHandleCardIndexUpdated(int oldIndex, int newIndex)
     {
         init();
         spriteRenderer.sprite = cardImages[newIndex];
+        ClientNewCardOpened?.Invoke(newIndex);
     }
 
     private void updateCard()
@@ -64,16 +79,19 @@ public class Deck : NetworkBehaviour
             init();
             
             print($"Player number {NetworkClient.connection.connectionId} is trying to change deck");
-            if(NetworkClient.connection.connectionId == gamestate.returnTurnState())
-                updateCard();
+            updateCard();
+            //if(NetworkClient.connection.connectionId == gamestate.returnTurnState())
+            //  updateCard();
         }
     }
 
     public void acceptButtonClicked() {
+        print("accpet button clicked");
         clientTakecardButtonClicked?.Invoke();
     }
 
     public void discardButtonClicked() {
+        print("discard button clicked");
         clientDiscardButtonClicked?.Invoke();
     }
 
@@ -81,7 +99,7 @@ public class Deck : NetworkBehaviour
 
     private void init()
     {
-        gamestate = FindObjectOfType<Gamestate>();
+        //gamestate = FindObjectOfType<Gamestate>();
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 }
