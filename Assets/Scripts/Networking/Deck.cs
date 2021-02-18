@@ -22,24 +22,35 @@ public class Deck : NetworkBehaviour
         return openCardIndex;
     }
 
+    private void Start()
+    {
+        Card.ServerCardSwappedWithDeck += handleServerCardSwappedWithDeck;
+    }
+
+    private void OnDestroy()
+    {
+        Card.ServerCardSwappedWithDeck -= handleServerCardSwappedWithDeck;
+    }
+
     #region Server
 
     public override void OnStartServer()
     {
         base.OnStartServer();
-        Card.ServerCardSwappedWithDeck += handleServerCardSwappedWithDeck;
+        
         openCardIndex = UnityEngine.Random.Range(0, cardImages.Length);
     }
 
     public override void OnStopServer()
     {
         base.OnStopServer();
-        Card.ServerCardSwappedWithDeck -= handleServerCardSwappedWithDeck;
+        
     }
 
     [Command(ignoreAuthority =true)]
     public void cmdUpdateCardIndex(int newIndex)
     {
+        print("cmdUpdateCardIndex , new index : " + newIndex);
         openCardIndex = newIndex;
     }
 
@@ -48,6 +59,7 @@ public class Deck : NetworkBehaviour
     #region Client
 
     private void handleServerCardSwappedWithDeck(int newIndex) {
+        print("handleServerCardSwappedWithDeck , new Index : " + newIndex);
         cmdUpdateCardIndex(newIndex);
     }
 
