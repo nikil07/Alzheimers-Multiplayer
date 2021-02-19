@@ -16,16 +16,31 @@ public class Card : NetworkBehaviour
 
     private SpriteRenderer spriteRenderer;
     private bool isInCardPickState;
+    private Animator animator;
+    private NetworkAnimator networkAnimator;
 
     public static event Action<int> ServerCardSwappedWithDeck;
+
+    private void Start()
+    {
+        Deck.clientDiscardButtonClicked += handleDiscardButtonClicked;
+        Deck.clientTakecardButtonClicked += handleTakecardButtonClicked;
+        ServerCardSwappedWithDeck += handleServerCardSwappedWithDeck;
+    }
+
+    private void OnDestroy()
+    {
+        Deck.clientDiscardButtonClicked -= handleDiscardButtonClicked;
+        Deck.clientTakecardButtonClicked -= handleTakecardButtonClicked;
+        ServerCardSwappedWithDeck = handleServerCardSwappedWithDeck;
+    }
 
     #region Server
 
     public override void OnStartServer()
     {
         base.OnStartServer();
-        Deck.clientDiscardButtonClicked += handleDiscardButtonClicked;
-        Deck.clientTakecardButtonClicked += handleTakecardButtonClicked;
+        
         init();
         cardIndex = UnityEngine.Random.Range(0, cardImages.Length);
         //spriteRenderer.sprite = cardBack;
@@ -35,8 +50,7 @@ public class Card : NetworkBehaviour
     public override void OnStopServer()
     {
         base.OnStopServer();
-        Deck.clientDiscardButtonClicked -= handleDiscardButtonClicked;
-        Deck.clientTakecardButtonClicked -= handleTakecardButtonClicked;
+       
     }
 
     [Command]
@@ -59,6 +73,8 @@ public class Card : NetworkBehaviour
 
     private void handleTakecardButtonClicked() {
         print("Take button clicked on card");
+        animator.SetBool("isShake", true);
+        networkAnimator.SetTrigger("startShake");
     }
 
     void OnMouseOver()
@@ -104,11 +120,17 @@ public class Card : NetworkBehaviour
         spriteRenderer.sprite = cardImages[newIndex];
     }
 
+    private void handleServerCardSwappedWithDeck(int index) {
+        animator.SetBool("isShake", false);
+        networkAnimator.SetTrigger("startShake");
+    }
+
     public void swapCardAndDeck(int newIndex) {
-        // set deck card to be this currenmt index
+        
         ServerCardSwappedWithDeck?.Invoke(cardIndex);
         cmdUpdateCardIndex(newIndex);
-
+        networkAnimator.SetTrigger("startShake");
+        animator.SetBool("isShake", false);
     }
 
     [ContextMenu("click")]
@@ -120,5 +142,7 @@ public class Card : NetworkBehaviour
 
     private void init() {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        animator = GetComponent<Animator>();
+        networkAnimator = GetComponent<NetworkAnimator>();
     }
 }

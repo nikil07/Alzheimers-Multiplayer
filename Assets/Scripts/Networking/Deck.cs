@@ -59,7 +59,7 @@ public class Deck : NetworkBehaviour
     #region Client
 
     private void handleServerCardSwappedWithDeck(int newIndex) {
-        print("handleServerCardSwappedWithDeck , new Index : " + newIndex);
+        //print("handleServerCardSwappedWithDeck , new Index : " + newIndex);
         cmdUpdateCardIndex(newIndex);
     }
 
