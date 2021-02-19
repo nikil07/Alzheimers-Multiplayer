@@ -18,6 +18,8 @@ public class Deck : NetworkBehaviour
     public static event Action clientDiscardButtonClicked;
     public static event Action<int> ClientNewCardOpened;
 
+    private Gamestate gamestate;
+
     public int getOpenCardIndex() {
         return openCardIndex;
     }
@@ -50,7 +52,7 @@ public class Deck : NetworkBehaviour
     [Command(ignoreAuthority =true)]
     public void cmdUpdateCardIndex(int newIndex)
     {
-        print("cmdUpdateCardIndex , new index : " + newIndex);
+        //print("cmdUpdateCardIndex , new index : " + newIndex);
         openCardIndex = newIndex;
     }
 
@@ -91,9 +93,9 @@ public class Deck : NetworkBehaviour
             init();
             
             print($"Player number {NetworkClient.connection.connectionId} is trying to change deck");
-            updateCard();
-            //if(NetworkClient.connection.connectionId == gamestate.returnTurnState())
-            //  updateCard();
+            //updateCard();
+            if(NetworkClient.connection.connectionId == gamestate.returnTurnState())
+                updateCard();
         }
     }
 
@@ -111,7 +113,7 @@ public class Deck : NetworkBehaviour
 
     private void init()
     {
-        //gamestate = FindObjectOfType<Gamestate>();
+        gamestate = FindObjectOfType<Gamestate>();
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 }

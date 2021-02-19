@@ -2,15 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
-public class Gamestate : MonoBehaviour
+public class Gamestate : NetworkBehaviour
 {
-    private List<int> activePlayers = new List<int>();
+    //[SyncVar]
+    //private List<int> activePlayers = new List<int>();
 
-    private int whoseTurn = -1;
+    [SerializeField]SyncList<int> activePlayers = new SyncList<int>();
+
+    [SyncVar]
+    private int whoseTurn = 0;
 
     // Start is called before the first frame update
     void Start()
     {
+        print("Strt");
         AlzNetworkManager.ServerPlayerAdded += handleServerPlayerAdded;
         AlzNetworkManager.ServerPlayerRemoved += handleServerPlayerRemoved;
     }
@@ -21,15 +26,30 @@ public class Gamestate : MonoBehaviour
         AlzNetworkManager.ServerPlayerRemoved -= handleServerPlayerRemoved;
     }
 
-    // Update is called once per frame
-    void Update()
+    [Command(ignoreAuthority = true)]
+    private void cmdAddPlayer(int playerId) {
+        activePlayers.Add(playerId);
+        printList();
+    }
+
+    [Command(ignoreAuthority = true)]
+    private void cmdRemovePlayer(int playerId)
     {
-        
+        activePlayers.Remove(playerId);
+        printList();
+    }
+
+    [Command(ignoreAuthority = true)]
+    private void cmdUpdateWhoseTurn(int whoseTurn)
+    {
+        this.whoseTurn = whoseTurn;
     }
 
     public int returnTurnState() {
-        print(activePlayers.ToString());
-        whoseTurn = (whoseTurn + 1) % activePlayers.Count;
+        //print("active player count "+ activePlayers.Count);
+        print("whose turn " + whoseTurn);
+        //whoseTurn = (whoseTurn + 1) % activePlayers.Count;
+        cmdUpdateWhoseTurn((whoseTurn + 1) % activePlayers.Count);
         return activePlayers[whoseTurn];
     }
 
@@ -38,15 +58,20 @@ public class Gamestate : MonoBehaviour
     }
 
     private void handleServerPlayerAdded(int playerId) {
-        activePlayers.Add(playerId);
-        print(activePlayers.Count + "," +  activePlayers.ToString());
+        cmdAddPlayer(playerId);
     }
 
     private void handleServerPlayerRemoved(int playerId)
     {
-        activePlayers.Remove(playerId);
-        print(activePlayers.Count + "," + activePlayers.ToString());
+        cmdRemovePlayer(playerId);
     }
 
+    private void printList() {
+        string listString = "";
+        foreach (int playerId in activePlayers) {
+            listString += playerId + " , ";
+        }
+        print("Player list " + listString);
+    }
 
 }

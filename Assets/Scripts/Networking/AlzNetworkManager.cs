@@ -8,6 +8,7 @@ public class AlzNetworkManager : NetworkManager
 {
     [SerializeField] GameObject handPrefab;
     [SerializeField] GameObject deckPrefab;
+    [SerializeField] GameObject gamestatePrefab;
     [SerializeField] Transform deckSpawnPoint;
     GameObject deckInstance = null;
 
@@ -17,7 +18,7 @@ public class AlzNetworkManager : NetworkManager
     public override void OnServerAddPlayer(NetworkConnection conn)
     {
         base.OnServerAddPlayer(conn);
-        ServerPlayerAdded?.Invoke(conn.connectionId);
+        
         GameObject handInstance = Instantiate(handPrefab, conn.identity.transform.position, conn.identity.transform.rotation);
         NetworkServer.Spawn(handInstance, conn);
 
@@ -25,10 +26,16 @@ public class AlzNetworkManager : NetworkManager
         if (numPlayers == 1)
         {
             deckInstance = Instantiate(deckPrefab, deckSpawnPoint.position, deckSpawnPoint.rotation);
+            GameObject gamestateInstance = Instantiate(gamestatePrefab, deckSpawnPoint.position, deckSpawnPoint.rotation);
             NetworkServer.Spawn(deckInstance, conn);
-            //NetworkServer.Spawn(deckInstance);
+            NetworkServer.Spawn(gamestateInstance, conn);
         }
-        
+        StartCoroutine(invokeNewPlayerAdded(conn));
+    }
+
+    IEnumerator invokeNewPlayerAdded(NetworkConnection conn) {
+        yield return new WaitForSeconds(2);
+        ServerPlayerAdded?.Invoke(conn.connectionId);
     }
 
     public override void OnServerDisconnect(NetworkConnection conn)

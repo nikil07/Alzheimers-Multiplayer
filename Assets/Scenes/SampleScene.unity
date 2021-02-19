@@ -191,7 +191,7 @@ RectTransform:
   m_GameObject: {fileID: 454668350}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 3, y: 3, z: 3.3787}
+  m_LocalScale: {x: 3, y: 3.1, z: 3.3787}
   m_Children: []
   m_Father: {fileID: 738185329}
   m_RootOrder: 0
@@ -1425,9 +1425,12 @@ MonoBehaviour:
   - {fileID: 5480251963562028913, guid: 463e7aebeab50eb4aa3b4910c02e85ba, type: 3}
   - {fileID: 2671801435569416733, guid: 03a5c9f654c22564ab6b6f5919202c8e, type: 3}
   - {fileID: 3818853549344549174, guid: 03add2795ceeb814382c0aba6f734a2c, type: 3}
+  - {fileID: 7507143073987743530, guid: 4bfdc92f0e70aa84db5012864a538438, type: 3}
   handPrefab: {fileID: 5480251963562028913, guid: 463e7aebeab50eb4aa3b4910c02e85ba,
     type: 3}
   deckPrefab: {fileID: 3818853549344549174, guid: 03add2795ceeb814382c0aba6f734a2c,
+    type: 3}
+  gamestatePrefab: {fileID: 7507143073987743530, guid: 4bfdc92f0e70aa84db5012864a538438,
     type: 3}
   deckSpawnPoint: {fileID: 1437377101}
 --- !u!4 &1881576297
