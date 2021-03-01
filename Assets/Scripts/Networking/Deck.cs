@@ -7,10 +7,15 @@ using System;
 public class Deck : NetworkBehaviour
 {
     [SerializeField] Sprite[] cardImages = new Sprite[0];
-    
+
+    SyncList<int> activePlayers = new SyncList<int>();
+
 
     [SyncVar(hook = nameof(ClientHandleCardIndexUpdated))]
     private int openCardIndex;
+
+    [SyncVar]
+    private int whoseTurn;
 
     private SpriteRenderer spriteRenderer;
 
@@ -19,6 +24,8 @@ public class Deck : NetworkBehaviour
     public static event Action<int> ClientNewCardOpened;
 
     private Gamestate gamestate;
+    private AlzPlayer player;
+    private bool firstTurn = false;
 
     public int getOpenCardIndex() {
         return openCardIndex;
@@ -27,11 +34,18 @@ public class Deck : NetworkBehaviour
     private void Start()
     {
         Card.ServerCardSwappedWithDeck += handleServerCardSwappedWithDeck;
+        AlzNetworkManager.ServerPlayerAdded += handleServerPlayerAdded;
+        AlzNetworkManager.ServerPlayerRemoved += handleServerPlayerRemoved;
+        Gamestate.serverTurnEnded += handleServerTurnEnded;
+        //player = NetworkClient.connection.identity.GetComponent<AlzPlayer>();]
     }
 
     private void OnDestroy()
     {
+        AlzNetworkManager.ServerPlayerAdded -= handleServerPlayerAdded;
+        AlzNetworkManager.ServerPlayerRemoved -= handleServerPlayerRemoved;
         Card.ServerCardSwappedWithDeck -= handleServerCardSwappedWithDeck;
+        Gamestate.serverTurnEnded -= handleServerTurnEnded;
     }
 
     #region Server
@@ -49,16 +63,47 @@ public class Deck : NetworkBehaviour
         
     }
 
-    [Command(ignoreAuthority =true)]
+    [Command]
     public void cmdUpdateCardIndex(int newIndex)
     {
         //print("cmdUpdateCardIndex , new index : " + newIndex);
+        newIndex = UnityEngine.Random.Range(0, cardImages.Length);
         openCardIndex = newIndex;
     }
+
+    [Command(ignoreAuthority = true)]
+    public void cmdWhoseTurn()
+    {
+        
+        whoseTurn = (whoseTurn + 1) % (activePlayers.Count);
+        print("cmd whose turn in deck , : " + whoseTurn);
+    }
+
 
     #endregion
 
     #region Client
+
+    private void Update()
+    {
+        if(player == null)
+            player = NetworkClient.connection.identity.GetComponent<AlzPlayer>();
+    }
+
+    private void handleServerTurnEnded() {
+        cmdWhoseTurn();
+    }
+
+    private void handleServerPlayerAdded(int playerId)
+    {
+        activePlayers.Add(playerId);
+    }
+
+    private void handleServerPlayerRemoved(int playerId)
+    {
+        activePlayers.Remove(playerId);
+    }
+
 
     private void handleServerCardSwappedWithDeck(int newIndex) {
         //print("handleServerCardSwappedWithDeck , new Index : " + newIndex);
@@ -91,11 +136,27 @@ public class Deck : NetworkBehaviour
         else if (Input.GetMouseButtonDown(1))
         {
             init();
-            
-            print($"Player number {NetworkClient.connection.connectionId} is trying to change deck");
-            //updateCard();
-            if(NetworkClient.connection.connectionId == gamestate.returnTurnState())
+            if (!firstTurn)
+            {
+                firstTurn = true;
+                player.pickCard();
+            }
+            if (!hasAuthority)
+                return;
+            player.pickCard();
+            /*if (gamestate.returnTurnState(whoseTurn))
+            {
                 updateCard();
+            }
+            else {
+                print("Not your turn");
+                return;
+            }*/
+            //updateCard();
+           //print($"Player id {NetworkClient.connection.connectionId}");
+           // print($"netindentiy id {netIdentity.connectionToClient.connectionId}");
+            //if(NetworkClient.connection.connectionId == gamestate.returnTurnState())
+            
         }
     }
 
@@ -115,5 +176,6 @@ public class Deck : NetworkBehaviour
     {
         gamestate = FindObjectOfType<Gamestate>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        
     }
 }

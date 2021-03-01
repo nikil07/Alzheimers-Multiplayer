@@ -25,10 +25,10 @@ public class AlzNetworkManager : NetworkManager
 
         if (numPlayers == 1)
         {
-            deckInstance = Instantiate(deckPrefab, deckSpawnPoint.position, deckSpawnPoint.rotation);
-            GameObject gamestateInstance = Instantiate(gamestatePrefab, deckSpawnPoint.position, deckSpawnPoint.rotation);
-            NetworkServer.Spawn(deckInstance, conn);
-            NetworkServer.Spawn(gamestateInstance, conn);
+            //deckInstance = Instantiate(deckPrefab, deckSpawnPoint.position, deckSpawnPoint.rotation);
+            //GameObject gamestateInstance = Instantiate(gamestatePrefab, deckSpawnPoint.position, deckSpawnPoint.rotation);
+            //NetworkServer.Spawn(deckInstance);
+            //NetworkServer.Spawn(gamestateInstance, conn);
         }
         StartCoroutine(invokeNewPlayerAdded(conn));
     }

@@ -85,7 +85,9 @@ public class Card : NetworkBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             //setCardProperty();
-            
+            print($"Player id {NetworkClient.connection.connectionId}");
+            print($"netindentiy id {netIdentity.connectionToClient.connectionId}");
+
         }
         else if (Input.GetMouseButtonDown(1))
         {

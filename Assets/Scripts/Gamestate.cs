@@ -2,15 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using System;
+
 public class Gamestate : NetworkBehaviour
 {
     //[SyncVar]
     //private List<int> activePlayers = new List<int>();
 
-    [SerializeField]SyncList<int> activePlayers = new SyncList<int>();
+    public static event Action serverTurnEnded;
+
+    public SyncList<int> activePlayers = new SyncList<int>();
 
     [SyncVar]
-    private int whoseTurn = 0;
+    [SerializeField]private int serverWhoseTurn = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -40,17 +44,32 @@ public class Gamestate : NetworkBehaviour
     }
 
     [Command(ignoreAuthority = true)]
-    private void cmdUpdateWhoseTurn(int whoseTurn)
+    private void cmdUpdateWhoseTurn()
     {
-        this.whoseTurn = whoseTurn;
+        //print("active player list count " + activePlayers.Count);
+        serverWhoseTurn = (serverWhoseTurn + 1) % (activePlayers.Count);
+        print($"Server whose turn {serverWhoseTurn}");
     }
 
-    public int returnTurnState() {
+    public bool returnTurnState(int whoseTurn) {
         //print("active player count "+ activePlayers.Count);
         print("whose turn " + whoseTurn);
+        print("Server whose turn " +  serverWhoseTurn);
         //whoseTurn = (whoseTurn + 1) % activePlayers.Count;
-        cmdUpdateWhoseTurn((whoseTurn + 1) % activePlayers.Count);
-        return activePlayers[whoseTurn];
+        return serverWhoseTurn == whoseTurn;
+    }
+
+    void OnMouseOver()
+    {
+        // Needs collider on object
+        //print("OnMouseOver");
+        if (Input.GetMouseButtonDown(0))
+        {
+            print("END TURN");
+            serverTurnEnded?.Invoke();
+            cmdUpdateWhoseTurn();
+
+        }
     }
 
     public void clearPlayersList() {

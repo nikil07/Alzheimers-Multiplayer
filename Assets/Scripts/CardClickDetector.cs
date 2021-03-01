@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Mirror;
 
 public class CardClickDetector : MonoBehaviour
 {
@@ -42,9 +43,12 @@ public class CardClickDetector : MonoBehaviour
         RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, Mathf.Infinity, layerMask);
         if (!hit)
             return;
-        if (!hit.collider.TryGetComponent<Card>(out Card card)) { return; }
-        if (!card.hasAuthority) { return; }
-        print("hitted a card, opencard: " + openCardIndex);
-        card.swapCardAndDeck(openCardIndex);
+        //AlzPlayer player = NetworkClient.connection.identity.GetComponent<AlzPlayer>();
+        
+      //  print($"Player ID {player.connectionToClient.connectionId}");
+       // if (!hit.collider.TryGetComponent<Deck>(out Deck deck)) { return; }
+        //if (!deck.hasAuthority) { return; }
+        //print("hitted a card, opencard: " + openCardIndex);
+
     }
 }
